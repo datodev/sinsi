@@ -1,0 +1,61 @@
+Name: CardCat
+Version: 0.1
+Synopsis: A site for buying giftcards
+Authors: Sean Grove <sean@cardcat.com>
+License: PROP
+
+Description: A site for buying giftcards
+Homepage: http://www.cardcat.com
+
+OASISFormat: 0.4
+BuildTools: ocamlbuild
+Plugins: META (0.4), DevFiles (0.4)
+
+BuildDepends:
+  threads,
+  lwt.ppx,
+  lwt.unix,
+  yojson,
+  ppx_deriving_yojson,
+  core,
+  magic-mime,
+  opium
+
+SourceRepository master
+  Type: git
+  Location: https://github.com/dexica/cardcat.git
+  Branch: master
+  Browser: https://github.com/dexica/cardcat
+
+Executable "dev"
+  Path: src
+  MainIs: main.ml
+
+Executable "prod"
+  Path: src
+  MainIs: main.ml
+  CompiledObject: best
+  BuildDepends:
+    lwt.ppx,
+    lwt.unix,
+    yojson,
+    ppx_deriving_yojson,
+    core,
+    magic-mime
+
+Executable test
+ Install: false
+ Path: src
+ MainIs: test.ml
+ BuildDepends:
+    oUnit,
+    lwt.ppx,
+    lwt.unix,
+    yojson,
+    ppx_deriving_yojson,
+    core,
+    magic-mime
+
+Test "main"
+ Type: Custom (0.0.1)
+ Command: $test

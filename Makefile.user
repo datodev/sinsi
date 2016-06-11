@@ -1,0 +1,3 @@
+deps::
+	opam switch -A 4.02.3 sinsi
+	opam install -y oasis merlin lwt yojson ppx_deriving_yojson magic-mime ounit cohttp opium syndic irmin irmin-unix ocp-indent utop
