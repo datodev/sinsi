@@ -13,6 +13,7 @@ take awhile if it's your first time, a lot to compile):
 
     git clone git@github.com:datodev/sinsi.git
     make deps
+    eval `opam config env`
 
 To add opam dependencies, edit `Makefile.user` under the `deps` target
 to add the opam invocation.
