@@ -1,44 +1,49 @@
 module Opi = Opium.Std
 
-type person = {
-  name: string;
-  age: int;
-}
+(* module Rss = Syndic.Rss2 *)
 
-let upload_file headers body =
-  let open Lwt.Infix in
-  match Cohttp.Header.get headers "Content-Length" with
-  | None -> Cohttp_lwt_unix.Server.respond_error ~status:`Length_required ~body:"Missing Content-Length\n" ()
-  | Some _length ->
-    let data_ = Cohttp_lwt_body.to_stream body in
-    data_ |> Lwt_stream.iter_s (fun data -> Lwt.return (print_endline ("Data: " ^ data))) >>= fun _ ->
-    Lwt.return ((Cohttp.Response.make ~status:`Not_found ()), (Cohttp_lwt_body.of_string "OK"))
-
+let feeds =
+  List.map Uri.of_string ["http://gun-moll.herokuapp.com/threads?id=dang"]
 
 let print_param = Opi.get "/hello/:name" begin fun req ->
   `String ("Hello " ^ Opi.param req "name") |> Opi.respond'
 end
 
 let home = Opi.get "/" begin fun _ ->
-  `String ("Welcome!") |> Opi.respond'
-end
-
-let handle_upload = Opi.post "/upload" begin fun req ->
-   ignore(upload_file (Opi.Request.headers req) (Opi.Request.body req));
-  `String ("Welcome!") |> Opi.respond'
+  `String ("Super Live(ish) reload!") |> Opi.respond'
 end
 
 let run_server () =
   Opi.App.empty
   |> print_param
   |> home
-  |> handle_upload
   |> Opi.App.port 4000
   |> Opi.App.run_command
 
+let fetch_feed uri =
+  let open Lwt.Infix in
+  let module Client = Cohttp_lwt_unix.Client in
+  Client.get uri >>= fun (_resp, body) ->
+  Cohttp_lwt_body.to_string body >|= fun body ->
+  Printf.printf "Uri %s has body of length: %d\n" (Uri.to_string uri) (String.length body);
+  body
+
+let fetch_and_print_feeds () =
+  let open Lwt.Infix in
+  print_endline "Getting feed bodies";
+  let feed_bodies = List.map fetch_feed feeds in
+  print_endline "Iterating over feed bodies";
+  Lwt_list.iter_s (fun _body ->
+      print_endline "Feed body loop";
+      _body >>= fun body ->
+      (* Never prints *)
+      Printf.printf "\tBody: %s" body;
+    Lwt.return_unit) feed_bodies
+
 let main () =
-  print_endline "Starting server...";
-  Lwt.return (run_server ())
+  print_endline "Fetching feed...";
+  (* Lwt.return (run_server ()) *)
+  fetch_and_print_feeds ()
 
 let _ =
   Lwt_main.run (main ())

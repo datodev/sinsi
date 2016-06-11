@@ -1,3 +1,4 @@
+# -*- conf -*-
 Name: Sinsi
 Version: 0.1
 Synopsis: RSS Feed Reader
@@ -40,12 +41,6 @@ Executable test
  MainIs: test.ml
  BuildDepends:
     oUnit,
-    lwt.ppx,
-    lwt.unix,
-    yojson,
-    ppx_deriving_yojson,
-    syndic,
-    magic-mime
 
 Test "main"
  Type: Custom (0.0.1)
