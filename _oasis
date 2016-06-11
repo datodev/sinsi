@@ -17,7 +17,6 @@ BuildDepends:
   lwt.unix,
   yojson,
   ppx_deriving_yojson,
-  core,
   magic-mime,
   opium
 
@@ -40,7 +39,6 @@ Executable "prod"
     lwt.unix,
     yojson,
     ppx_deriving_yojson,
-    core,
     magic-mime
 
 Executable test
@@ -53,7 +51,6 @@ Executable test
     lwt.unix,
     yojson,
     ppx_deriving_yojson,
-    core,
     magic-mime
 
 Test "main"
