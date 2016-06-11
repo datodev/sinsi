@@ -35,13 +35,6 @@ Executable "prod"
   Path: src
   MainIs: main.ml
   CompiledObject: best
-  BuildDepends:
-    lwt.ppx,
-    lwt.unix,
-    yojson,
-    ppx_deriving_yojson,
-    syndic,
-    magic-mime,
 
 Executable test
  Install: false
@@ -49,12 +42,6 @@ Executable test
  MainIs: test.ml
  BuildDepends:
     oUnit,
-    lwt.ppx,
-    lwt.unix,
-    yojson,
-    ppx_deriving_yojson,
-    syndic,
-    magic-mime
 
 Test "main"
  Type: Custom (0.0.1)
