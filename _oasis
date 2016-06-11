@@ -11,16 +11,6 @@ OASISFormat: 0.4
 BuildTools: ocamlbuild
 Plugins: META (0.4), DevFiles (0.4)
 
-BuildDepends:
-  threads,
-  lwt.ppx,
-  lwt.unix,
-  yojson,
-  ppx_deriving_yojson,
-  magic-mime,
-  opium,
-  syndic
-
 SourceRepository master
   Type: git
   Location: https://github.com/datodev/sinsi
@@ -30,18 +20,19 @@ SourceRepository master
 Executable "dev"
   Path: src
   MainIs: main.ml
+  BuildDepends:
+    threads, lwt.ppx, lwt.unix,
+    yojson, ppx_deriving_yojson, magic-mime,
+    opium, syndic, opium.unix
 
 Executable "prod"
   Path: src
   MainIs: main.ml
   CompiledObject: best
   BuildDepends:
-    lwt.ppx,
-    lwt.unix,
-    yojson,
-    ppx_deriving_yojson,
-    syndic,
-    magic-mime,
+    threads, lwt.ppx, lwt.unix,
+    yojson, ppx_deriving_yojson, magic-mime,
+    opium, syndic, opium.unix
 
 Executable test
  Install: false
