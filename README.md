@@ -11,7 +11,7 @@ Now run the following to checkout the project, create an opam switch
 havoc with one another), and install all the dependencies (this will
 take awhile if it's your first time, a lot to compile):
 
-    git clone ...
+    git clone git@github.com:datodev/sinsi.git
     make deps
 
 To add opam dependencies, edit `Makefile.user` under the `deps` target
