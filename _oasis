@@ -1,3 +1,4 @@
+# -*- conf -*-
 Name: Sinsi
 Version: 0.1
 Synopsis: RSS Feed Reader
@@ -11,17 +12,6 @@ OASISFormat: 0.4
 BuildTools: ocamlbuild
 Plugins: META (0.4), DevFiles (0.4)
 
-BuildDepends:
-  cohttp,
-  threads,
-  lwt.ppx,
-  lwt.unix,
-  yojson,
-  ppx_deriving_yojson,
-  magic-mime,
-  opium,
-  syndic
-
 SourceRepository master
   Type: git
   Location: https://github.com/datodev/sinsi
@@ -31,11 +21,19 @@ SourceRepository master
 Executable "dev"
   Path: src
   MainIs: main.ml
+  BuildDepends:
+    threads, lwt.ppx, lwt.unix,
+    yojson, ppx_deriving_yojson, magic-mime,
+    opium, syndic, opium.unix
 
 Executable "prod"
   Path: src
   MainIs: main.ml
   CompiledObject: best
+  BuildDepends:
+    threads, lwt.ppx, lwt.unix,
+    yojson, ppx_deriving_yojson, magic-mime,
+    opium, syndic, opium.unix
 
 Executable test
  Install: false

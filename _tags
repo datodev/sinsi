@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 3d6df7d5f62478ace6c638030397e5ad)
+# DO NOT EDIT (digest: 65ee60ae7c8f3bf485bc7256264e38b9)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -23,34 +23,28 @@ true: annot, bin_annot
 "src/main.byte": pkg_syndic
 "src/main.byte": pkg_threads
 "src/main.byte": pkg_yojson
+<src/*.ml{,i,y}>: pkg_opium
+<src/*.ml{,i,y}>: pkg_threads
 # Executable prod
-<src/main.{native,byte}>: pkg_
 <src/main.{native,byte}>: pkg_lwt.ppx
 <src/main.{native,byte}>: pkg_lwt.unix
 <src/main.{native,byte}>: pkg_magic-mime
-<src/main.{native,byte}>: pkg_opium
 <src/main.{native,byte}>: pkg_ppx_deriving_yojson
 <src/main.{native,byte}>: pkg_syndic
-<src/main.{native,byte}>: pkg_threads
 <src/main.{native,byte}>: pkg_yojson
-<src/*.ml{,i,y}>: pkg_
 # Executable test
 "src/test.byte": pkg_lwt.ppx
 "src/test.byte": pkg_lwt.unix
 "src/test.byte": pkg_magic-mime
 "src/test.byte": pkg_oUnit
-"src/test.byte": pkg_opium
 "src/test.byte": pkg_ppx_deriving_yojson
 "src/test.byte": pkg_syndic
-"src/test.byte": pkg_threads
 "src/test.byte": pkg_yojson
 <src/*.ml{,i,y}>: pkg_lwt.ppx
 <src/*.ml{,i,y}>: pkg_lwt.unix
 <src/*.ml{,i,y}>: pkg_magic-mime
 <src/*.ml{,i,y}>: pkg_oUnit
-<src/*.ml{,i,y}>: pkg_opium
 <src/*.ml{,i,y}>: pkg_ppx_deriving_yojson
 <src/*.ml{,i,y}>: pkg_syndic
-<src/*.ml{,i,y}>: pkg_threads
 <src/*.ml{,i,y}>: pkg_yojson
 # OASIS_STOP
