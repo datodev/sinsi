@@ -1,11 +1,11 @@
-Name: CardCat
+Name: Sinsi
 Version: 0.1
-Synopsis: A site for buying giftcards
-Authors: Sean Grove <sean@cardcat.com>
+Synopsis: RSS Feed Reader
+Authors: Sean Grove <sean@bushi.do>
 License: PROP
 
-Description: A site for buying giftcards
-Homepage: http://www.cardcat.com
+Description: A web-based RSS Reader
+Homepage: http://www.sinsireader.com
 
 OASISFormat: 0.4
 BuildTools: ocamlbuild
@@ -18,13 +18,14 @@ BuildDepends:
   yojson,
   ppx_deriving_yojson,
   magic-mime,
-  opium
+  opium,
+  syndic
 
 SourceRepository master
   Type: git
-  Location: https://github.com/dexica/cardcat.git
+  Location: https://github.com/datodev/sinsi
   Branch: master
-  Browser: https://github.com/dexica/cardcat
+  Browser: https://github.com/datodev/sinsi
 
 Executable "dev"
   Path: src
@@ -39,7 +40,8 @@ Executable "prod"
     lwt.unix,
     yojson,
     ppx_deriving_yojson,
-    magic-mime
+    syndic,
+    magic-mime,
 
 Executable test
  Install: false
@@ -51,6 +53,7 @@ Executable test
     lwt.unix,
     yojson,
     ppx_deriving_yojson,
+    syndic,
     magic-mime
 
 Test "main"

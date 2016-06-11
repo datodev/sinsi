@@ -1,7 +1,7 @@
 open OUnit
 
 let basic_tests = 
-  "CardCat" >:::
+  "Sinsi" >:::
   [
     "add" >::
     (fun () ->
