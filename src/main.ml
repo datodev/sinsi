@@ -1,5 +1,4 @@
 module Opi = Opium.Std
-
 module Rss = Syndic.Rss2
 
 let string_of_option = function
@@ -44,6 +43,9 @@ type channel =
     entries: entry list;
   } [@@deriving yojson]
 
+type channel_store_type = (Uri.t, channel) Hashtbl.t
+let channel_store : channel_store_type = (Hashtbl.create 100)
+
 let entry_text (entry : entry) =
   match entry.body with
   | Some b -> b
@@ -74,8 +76,28 @@ let rss_item_to_entry (item : Rss.item) =
     description = description;
   }
 
+let rss_to_channel uri rss =
+  let open Syndic.Rss2 in
+  let title = Some rss.title in
+  let description = Some rss.description in
+  let html_uri = Some (Uri.to_string rss.link) in
+
+  let items = rss.items in
+  let entries = List.map rss_item_to_entry items in
+
+  {
+    title = title;
+    description = description;
+    link = Some (Uri.to_string uri);
+    html_uri = html_uri;
+    entries = entries
+  }
+
 let feeds =
-  List.map Uri.of_string ["http://gun-moll.herokuapp.com/threads?id=dang"]
+  List.map Uri.of_string ["http://gun-moll.herokuapp.com/threads?id=dang";
+                          "http://gun-moll.herokuapp.com/threads?id=patio11";
+                          "http://gun-moll.herokuapp.com/threads?id=sbensu";
+                         ]
 
 let print_param = Opi.get "/hello/:name" begin fun req ->
   `String ("Hello " ^ Opi.param req "name") |> Opi.respond'
@@ -85,11 +107,22 @@ let home = Opi.get "/" begin fun _ ->
   `String ("Super Live(ish) reload!") |> Opi.respond'
 end
 
+let feeds_route = Opi.get "/feeds" begin fun _ ->
+  let result = Hashtbl.fold (fun _k v s ->
+                             s ^ (Yojson.Safe.pretty_to_string (channel_to_yojson v)) ^ "\n")
+                            channel_store
+                            "" in
+  `String (result) |> Opi.respond'
+end
+
 let run_server () =
+  let port = 4000 in
+  Printf.printf "Running server at http://localhost:%d" port;
   Opi.App.empty
   |> print_param
   |> home
-  |> Opi.App.port 4000
+  |> feeds_route
+  |> Opi.App.port port
   |> Opi.App.run_command
 
 let fetch_feed uri =
@@ -100,37 +133,22 @@ let fetch_feed uri =
   Printf.printf "Uri %s has body of length: %d\n" (Uri.to_string uri) (String.length body);
   body
 
-let fetch_and_print_feeds () =
+let fetch_feeds () =
+  print_endline "Fetching feeds";
   let open Lwt.Infix in
-  let open Syndic.Rss2 in
-  print_endline "Getting feed bodies";
-  let feed_bodies = List.map fetch_feed feeds in
-  print_endline "Iterating over feed bodies";
-  Lwt_list.iter_s (fun _body ->
-      print_endline "Feed body loop";
-      _body >>= fun body ->
-      let xml_source = Xmlm.make_input (`String (0, body)) in
-      let rss = Rss.parse xml_source in
-      let items = rss.items in
-      let entries = List.map rss_item_to_entry items in
-      let channel =
-        {
-          title = None;
-          description = None;
-          link = None;
-          html_uri = None;
-          entries = entries
-        }
-      in
-      let yojson = channel_to_yojson channel in
-      let json = Yojson.Safe.to_string yojson in
-      Printf.printf "JSON: %s \n" json;
-    Lwt.return_unit) feed_bodies
+  Lwt_list.iter_s (fun uri ->
+                   let feed_body = fetch_feed uri in
+                   feed_body >>= (fun body ->
+                                  let xml_source = Xmlm.make_input (`String (0, body)) in
+                                  let rss = Rss.parse xml_source in
+                                  let channel = (rss_to_channel uri rss) in
+                                  Hashtbl.add channel_store uri channel;
+                                  Lwt.return_unit))
+                  feeds
 
 let main () =
-  print_endline "Fetching feed...";
-  (* Lwt.return (run_server ()) *)
-  fetch_and_print_feeds ()
+  ignore(Lwt.async(fetch_feeds));
+  Lwt.return (run_server ())
 
 let _ =
   Lwt_main.run (main ())
