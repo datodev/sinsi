@@ -93,6 +93,14 @@ let rss_to_channel uri rss =
     entries = entries
   }
 
+type _channel_store_json = (string * channel) list [@@deriving yojson]
+
+let channel_store_to_json (cs : channel_store_type) =
+  let inter = Hashtbl.fold (fun uri channel run -> [(Uri.to_string uri, channel)] @ run) cs [] in
+  inter
+  |> _channel_store_json_to_yojson
+  |> Yojson.Safe.pretty_to_string
+
 let feeds =
   List.map Uri.of_string ["http://gun-moll.herokuapp.com/threads?id=dang";
                           "http://gun-moll.herokuapp.com/threads?id=patio11";
@@ -108,12 +116,8 @@ let home = Opi.get "/" begin fun _ ->
 end
 
 let feeds_route = Opi.get "/feeds" begin fun _ ->
-  let result = Hashtbl.fold (fun _k v s ->
-                             s ^ (Yojson.Safe.pretty_to_string (channel_to_yojson v)) ^ "\n")
-                            channel_store
-                            "" in
-  `String (result) |> Opi.respond'
-end
+    `String (channel_store_to_json channel_store) |> Opi.respond'
+  end
 
 let run_server () =
   let port = 4000 in
