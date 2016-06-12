@@ -121,7 +121,7 @@ let feeds_route = Opi.get "/feeds" begin fun _ ->
 
 let run_server () =
   let port = 4000 in
-  Printf.printf "Running server at http://localhost:%d" port;
+  Lwt.async(fun () -> Lwt_io.printlf "Running server at http://localhost:%d" port);
   Opi.App.empty
   |> print_param
   |> home
@@ -137,7 +137,7 @@ let fetch_feed uri =
   Printf.printf "Uri %s has body of length: %d\n" (Uri.to_string uri) (String.length body);
   body
 
-let fetch_feeds () =
+let update_channel_store () =
   print_endline "Fetching feeds";
   let open Lwt.Infix in
   Lwt_list.iter_s (fun uri ->
@@ -150,9 +150,20 @@ let fetch_feeds () =
                                   Lwt.return_unit))
                   feeds
 
+let update_feed_interval_in_seconds =
+  60 * 60
+
+let rec feed_update_worker () =
+  let open Lwt.Infix in
+  update_channel_store () >>= fun () ->
+  Lwt.async(fun () -> Lwt_io.printlf "Sleeping, %d seconds until next check" update_feed_interval_in_seconds);
+  Lwt.bind (Lwt_unix.sleep (float_of_int update_feed_interval_in_seconds))
+    (fun () -> feed_update_worker ())
+
 let main () =
-  ignore(Lwt.async(fetch_feeds));
+  ignore(Lwt.async(update_channel_store));
   Lwt.return (run_server ())
 
 let _ =
+  Lwt.async (feed_update_worker);
   Lwt_main.run (main ())
