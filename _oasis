@@ -12,6 +12,10 @@ OASISFormat: 0.4
 BuildTools: ocamlbuild
 Plugins: META (0.4), DevFiles (0.4)
 
+# recommended by tyxml
+AlphaFeatures:  ocamlbuild_more_args
+XOCamlbuildExtraArgs: "-docflags '-short-paths'"
+
 SourceRepository master
   Type: git
   Location: https://github.com/datodev/sinsi
@@ -24,7 +28,7 @@ Executable "dev"
   BuildDepends:
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
-    opium, syndic, opium.unix
+    opium, syndic, opium.unix, tyxml, tyxml.ppx
 
 Executable "prod"
   Path: src
@@ -33,7 +37,7 @@ Executable "prod"
   BuildDepends:
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
-    opium, syndic, opium.unix
+    opium, syndic, opium.unix, tyxml, tyxml.ppx
 
 Executable test
  Install: false
