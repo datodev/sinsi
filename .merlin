@@ -2,3 +2,4 @@ B _build/**
 FLG -w +a-4-40..42-44-45-48-39 -short-paths
 
 PKG lwt lwt.ppx yojson ppx_deriving_yojson magic-mime ounit cohttp opium containers irmin syndic tyxml tyxml.ppx
+PKG irmin irmin.unix
