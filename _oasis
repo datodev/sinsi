@@ -28,7 +28,8 @@ Executable "dev"
   BuildDepends:
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
-    opium, syndic, opium.unix, tyxml, tyxml.ppx
+    opium, syndic, opium.unix, tyxml, tyxml.ppx,
+    irmin, irmin.unix
 
 Executable "prod"
   Path: src
@@ -37,7 +38,8 @@ Executable "prod"
   BuildDepends:
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
-    opium, syndic, opium.unix, tyxml, tyxml.ppx
+    opium, syndic, opium.unix, tyxml, tyxml.ppx,
+    irmin, irmin.unix
 
 Executable test
  Install: false
