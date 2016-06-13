@@ -43,8 +43,8 @@ type channel =
   } [@@deriving yojson]
 
 
-type channel_store_type = (Uri.t, channel) Hashtbl.t
-let channel_store : channel_store_type = (Hashtbl.create 100)
+let channel_store =
+  Sinsi_store.empty Sinsi_store.config
 
 let entry_text (entry : entry) =
   match entry.body with
@@ -93,14 +93,6 @@ let rss_to_channel uri rss =
     entries = entries
   }
 
-type _channel_store_json = (string * channel) list [@@deriving yojson]
-
-let channel_store_to_json (cs : channel_store_type) =
-  let inter = Hashtbl.fold (fun uri channel run -> [(Uri.to_string uri, channel)] @ run) cs [] in
-  inter
-  |> _channel_store_json_to_yojson
-  |> Yojson.Safe.pretty_to_string
-
 let feeds =
   List.map Uri.of_string ["http://gun-moll.herokuapp.com/threads?id=dang";
                           "http://gun-moll.herokuapp.com/threads?id=patio11";
@@ -116,38 +108,72 @@ let fetch_feed uri =
   Printf.printf "Uri %s has body of length: %d\n" (Uri.to_string uri) (String.length body);
   body
 
-let fetch_feeds () =
+let update_channel_store store =
   print_endline "Fetching feeds";
   let open Lwt.Infix in
+  let module Store = Sinsi_store.Store in
   Lwt_list.iter_s (fun uri ->
-                   let feed_body = fetch_feed uri in
-                   feed_body >>= (fun body ->
-                                  let xml_source = Xmlm.make_input (`String (0, body)) in
-                                  let rss = Rss.parse xml_source in
-                                  let channel = (rss_to_channel uri rss) in
-                                  Hashtbl.add channel_store uri channel;
-                                  Lwt.return_unit))
-                  feeds
-
-let update_channel_store () =
-  print_endline "Fetching feeds";
-  let open Lwt.Infix in
-  Lwt_list.iter_s (fun uri ->
-                   let feed_body = fetch_feed uri in
-                   feed_body >>= (fun body ->
-                                  let xml_source = Xmlm.make_input (`String (0, body)) in
-                                  let rss = Rss.parse xml_source in
-                                  let channel = (rss_to_channel uri rss) in
-                                  Hashtbl.add channel_store uri channel;
-                                  Lwt.return_unit))
-                  feeds
+      let feed_body = fetch_feed uri in
+      feed_body >>= (fun body ->
+          let xml_source = Xmlm.make_input (`String (0, body)) in
+          let rss = Rss.parse xml_source in
+          let channel = (rss_to_channel uri rss) in
+          let date = Int64.of_int 0 in
+          let owner = "Sinsi" in
+          let yojson = channel_to_yojson channel in
+          let json = Yojson.Safe.pretty_to_string yojson in
+          Store.master (Irmin.Task.create ~date ~owner) store >>= fun task ->
+          Store.update (task ("Updating " ^ (Uri.to_string uri))) ["channels"; (Uri.to_string uri)] json >>= fun () ->
+          Lwt.return_unit))
+    feeds
 
 let update_feed_interval_in_seconds =
   60 * 60
 
-let rec feed_update_worker () =
+let rec feed_update_worker store =
   let open Lwt.Infix in
-  update_channel_store () >>= fun () ->
+  update_channel_store store >>= fun () ->
   Lwt.async(fun () -> Lwt_io.printlf "Sleeping, %d seconds until next check" update_feed_interval_in_seconds);
   Lwt.bind (Lwt_unix.sleep (float_of_int update_feed_interval_in_seconds))
-    (fun () -> feed_update_worker ())
+    (fun () -> feed_update_worker store)
+
+let channel_by_uri store uri : channel option Lwt.t =
+  let open Lwt.Infix in
+  let module Store = Sinsi_store.Store in
+  let date = Int64.of_int 0 in
+  let owner = "Sinsi" in
+  Store.master (Irmin.Task.create ~date ~owner) store >>= fun task ->
+  Store.read (task ("Reading " ^ (Uri.to_string uri))) ["channels"; (Uri.to_string uri)] >>= function
+  | None -> Lwt.return_none
+  | Some json ->
+    let yojson = Yojson.Safe.from_string json in
+    let channel = match channel_of_yojson yojson with
+      | `Error _err_str -> None
+      | `Ok channel -> Some channel
+    in
+    Lwt.return channel
+
+let uris store : Uri.t list Lwt.t =
+  let open Lwt.Infix in
+  let module Store = Sinsi_store.Store in
+  Sinsi_store.View.of_path store [] >>= fun value ->
+  Sinsi_store.View.list value [] >|= fun key_paths ->
+  List.map (function
+      | [uri] -> Uri.of_string uri
+      | _ -> raise (Failure "Failed listing keys")) key_paths
+
+let print_all_channels feeds store =
+  let open Lwt.Infix in
+  print_endline "Printing channels!";
+  Lwt_list.iter_s (fun uri ->
+      channel_by_uri store uri >>=
+      (function
+        | None -> Lwt.return ()
+        | Some channel -> Lwt.return (print_endline (string_of_option channel.title)))) feeds
+
+let rec print_channels_worker feeds store =
+  let open Lwt.Infix in
+  print_all_channels feeds store >>= fun () ->
+  Lwt.async (fun () -> Lwt_io.printlf "Sleeping, %d seconds until next check" update_feed_interval_in_seconds);
+  Lwt.bind (Lwt_unix.sleep (float_of_int 2))
+    (fun () -> print_channels_worker feeds store)
