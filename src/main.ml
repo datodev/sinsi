@@ -30,6 +30,17 @@ let run_server () =
 let main () =
   Lwt.return (run_server ())
 
+let start_feed_worker () =
+  let open Lwt.Infix in
+  Sinsi_feeds.channel_store >>= fun store ->
+  Sinsi_feeds.feed_update_worker store
+
+let print_channels () =
+  let open Lwt.Infix in
+  Sinsi_feeds.channel_store >>= fun store ->
+  Sinsi_feeds.print_channels_worker Sinsi_feeds.feeds store
+
 let _ =
-  Lwt.async (Sinsi_feeds.feed_update_worker);
+  Lwt.async (start_feed_worker);
+  Lwt.async (print_channels);
   Lwt_main.run (main ())
