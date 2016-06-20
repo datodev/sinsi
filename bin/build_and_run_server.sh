@@ -12,8 +12,11 @@ fi
 
 set -e
 
-echo "Cleaning artifacts"
-make clean
+if [ "$1" != "--dirty" ]
+then
+    echo "Cleaning artifacts"
+    make clean
+fi
 echo "Rebuilding main"
 make
 echo "Running server"

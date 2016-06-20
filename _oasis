@@ -29,7 +29,7 @@ Executable "dev"
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
     opium, syndic, opium.unix, tyxml, tyxml.ppx,
-    irmin, irmin.unix
+    irmin, irmin.unix, ptime.clock.os
 
 Executable "prod"
   Path: src
@@ -39,7 +39,7 @@ Executable "prod"
     threads, lwt.ppx, lwt.unix,
     yojson, ppx_deriving_yojson, magic-mime,
     opium, syndic, opium.unix, tyxml, tyxml.ppx,
-    irmin, irmin.unix
+    irmin, irmin.unix, ptime.clock.os
 
 Executable test
  Install: false

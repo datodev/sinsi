@@ -1,19 +1,29 @@
 module Opi = Opium.Std
 
+
 let print_param = Opi.get "/hello/:name" begin fun req ->
   `String ("Hello " ^ Opi.param req "name") |> Opi.respond'
 end
 
 let home = Opi.get "/" begin fun _ ->
-  `String (Sinsi_view.render_home_page ()) |> Opi.respond'
-end
+    let open Lwt.Infix in
+    (Sinsi_view.render_home_page ()) >>= fun page ->
+    `String page |> Opi.respond'
+  end
 
 let channels_route = Opi.get "/channels" begin fun _ ->
-  `String (Sinsi_view.render_channels_page Sinsi_feeds.channel_store) |> Opi.respond'
+    let open Lwt.Infix in
+    Sinsi_feeds.channel_store >>= (fun store ->
+        (Sinsi_view.render_channels_page store) >>= (fun page ->
+            `String page |> Opi.respond'))
 end
 
-let feeds_route = Opi.get "/feeds" begin fun _ ->
-    `String (Sinsi_feeds.channel_store_to_json Sinsi_feeds.channel_store) |> Opi.respond'
+let read_route = Opi.put "/entry/:entry-id/mark-read" begin fun req ->
+  let entry_id = Opi.param req "entry-id" in
+  let open Lwt.Infix in
+  Sinsi_feeds.channel_store >>= (fun store ->
+      (Sinsi_feeds.mark_as_read store entry_id) >>= (fun result ->
+          `String (result) |> Opi.respond'))
 end
 
 let run_server () =
@@ -22,8 +32,9 @@ let run_server () =
   Opi.App.empty
   |> print_param
   |> home
-  |> feeds_route
   |> channels_route
+  |> read_route
+  |> Opi.middleware (Opi.Middleware.static ~local_path:"./public" ~uri_prefix:"")
   |> Opi.App.port port
   |> Opi.App.run_command
 
