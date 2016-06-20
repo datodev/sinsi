@@ -1,0 +1,7 @@
+/.pid
+_build/
+/main.byte
+/main.native
+/setup.data
+/setup.log
+/test.byte

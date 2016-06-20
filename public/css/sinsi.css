@@ -1,0 +1,44 @@
+/* Colors from https://flatuicolors.com/ */
+
+body {
+  background: #ecf0f1;
+  font-size: 14px;
+  font-family: Verdana, sans-serif;
+}
+
+a {
+  color: #3498db;
+}
+
+.entries-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  max-width: 800px;
+  margin: 10px;
+  padding: 10px;
+  border-left: 8px solid #2980b9; /* #27ae60; */
+}
+
+.read {
+  border-left: 8px solid gray; /* #27ae60; */
+}
+
+.entry-title {
+  font-size: 1.2em;
+}
+
+.entry-meta {
+  display: flex;
+  font-size: 0.8em;
+  padding-bottom: 1em;
+}
+
+.entry-pubdate::before {
+  /* add a single space */
+  content: '\00a0 ';
+}
